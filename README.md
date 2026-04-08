@@ -33,7 +33,7 @@ A `Makefile` is included for automated, professional compilation.
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/](https://github.com/)[Your GitHub Username]/C-Mutator.git
+git clone [https://github.com/Salahuddin-Butt/C-Mutator.git](https://github.com/Salahuddin-Butt/C-Mutator.git)
 cd C-Mutator
 
 # 2. Compile the fuzzer and the vulnerable target
