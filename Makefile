@@ -4,7 +4,7 @@ CFLAGS=-Wall
 all: target fuzzer
 
 target: vulnerable_target.c
-	$(CC) -fno-stack-protector -z execstack vulnerable_target.c -o target
+	$(CC) -O0 -fno-stack-protector -z execstack -D_FORTIFY_SOURCE=0 vulnerable_target.c -o target
 
 fuzzer: fuzzer.c
 	$(CC) $(CFLAGS) fuzzer.c -o fuzzer
