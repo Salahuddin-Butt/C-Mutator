@@ -1,53 +1,29 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
-// Function to read file into memory
-unsigned char* read_file(const char* filename, size_t* size) {
-    FILE *f = fopen(filename, "rb");
-    if (!f) return NULL;
+// By moving the flaw here, we guarantee a Return Address overwrite (Signal 11)
+void process_payload(char *payload) {
+    char tiny_buffer[50];
     
-    fseek(f, 0, SEEK_END);
-    *size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
-    unsigned char *buffer = malloc(*size);
-    fread(buffer, 1, *size, f);
-    fclose(f);
-    return buffer;
+    // THE FATAL FLAW: Copying a massive payload into a 50-byte buffer
+    strcpy(tiny_buffer, payload); 
 }
 
-// Function to write memory back to a file
-void write_file(const char* filename, unsigned char* buffer, size_t size) {
-    FILE *f = fopen(filename, "wb");
-    if (f) {
-        fwrite(buffer, 1, size, f);
-        fclose(f);
-    }
-}
-
-int main() {
-    srand(time(NULL)); // Seed the random number generator
-    size_t size = 0;
-    
-    // 1. Read a dummy seed file (you need to create a simple 'seed.txt' with some text)
-    unsigned char *data = read_file("seed.txt", &size);
-    if (!data) {
-        printf("Failed to read seed file.\n");
+int main(int argc, char *argv[]) {
+    // 1. Open the mutated file passed by the fuzzer
+    FILE *f = fopen(argv[1], "rb");
+    if (!f) {
         return 1;
     }
 
-    // 2. The Mutation: Pick a random byte and corrupt it
-    if (size > 0) {
-        size_t random_index = rand() % size;
-        data[random_index] ^= 0xFF; // Bitwise XOR to flip the bits
-        printf("Corrupted byte at index: %zu\n", random_index);
-    }
+    // 2. Read the payload
+    char payload[1000] = {0};
+    fread(payload, 1, 999, f);
+    fclose(f);
 
-    // 3. Write the corrupted data to a new file
-    write_file("mutated_input.txt", data, size);
-    
-    printf("Mutation complete. Check mutated_input.txt\n");
-    free(data);
+    // 3. Trigger the vulnerability
+    process_payload(payload);
+
     return 0;
 }
